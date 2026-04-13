@@ -7,7 +7,7 @@ trigger:
 - master
 
 pool:
-  name: 'Slef-hosted-pool'
+  vmImage: 'ubuntu-latest'
 
 steps:
 - task: Maven@3
