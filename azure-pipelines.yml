@@ -63,27 +63,23 @@ stages:
   condition: succeeded()
 
   jobs:
-  - deployment: DeployToAppService
+  - job: DeployToAppService
     displayName: Deploy to Azure App Service
-    environment: 'prod'   # Recommended: use environments
-
     pool:
       vmImage: $(vmImage)
 
-    strategy:
-      runOnce:
-        deploy:
-          steps:
+    steps:
+    # Download artifact
+    - download: current
+      artifact: '$(artifactName)'
 
-          # Download artifact
-          - download: current
-            artifact: $(artifactName)
-
-          # Deploy to App Service
-          - task: AzureWebApp@1
-            displayName: Deploy to App Service
-            inputs:
-              azureSubscription: $(azureServiceConnection)
-              appType: 'webAppLinux'   # change if Windows
+    # Deploy to App Service
+    - task: AzureWebApp@1
+      displayName: Deploy to App Service
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        appType: 'webAppLinux'
+        appName: $(appName)
+        package: '$(Pipeline.Workspace)/$(artifactName)/**/*.war'
               appName: $(appName)
               package: '$(Pipeline.Workspace)/$(artifactName)/**/*.war'
