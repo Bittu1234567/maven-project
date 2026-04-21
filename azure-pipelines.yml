@@ -31,7 +31,7 @@ stages:
         key: 'maven | "$(Agent.OS)" | **/pom.xml'
         restoreKeys: |
           maven | "$(Agent.OS)"
-        path: ~/.m2/repository
+        path: $(Pipeline.Workspace)/.m2/repository
       displayName: Cache Maven Dependencies
 
     # Build using Maven
