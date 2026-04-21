@@ -5,7 +5,7 @@ trigger:
 variables:
   vmImage: 'ubuntu-latest'
   buildConfiguration: 'Release'
-  artifactName: 'webapp.war'
+  artifactName: 'drop'
   appName: 'myhelloworldapp'
   azureServiceConnection: 'devopsappserviceconnection'
 
@@ -80,4 +80,4 @@ stages:
         azureSubscription: $(azureServiceConnection)
         appType: 'webAppLinux'
         appName: $(appName)
-        package: '$(Pipeline.Workspace)/webapp.war'
+        package: '$(Pipeline.Workspace)/drop/**/*.war
