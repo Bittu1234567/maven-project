@@ -81,5 +81,3 @@ stages:
         appType: 'webAppLinux'
         appName: $(appName)
         package: '$(Pipeline.Workspace)/$(artifactName)/**/*.war'
-              appName: $(appName)
-              package: '$(Pipeline.Workspace)/$(artifactName)/**/*.war'
