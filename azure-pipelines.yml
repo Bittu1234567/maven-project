@@ -1,19 +1,13 @@
 trigger:
 - main
 
-# Recommended variables
 variables:
   vmImage: 'ubuntu-latest'
-  buildConfiguration: 'Release'
   artifactName: 'drop'
   appName: 'myhelloworldapp'
   azureServiceConnection: 'devopsappserviceconnection'
 
 stages:
-
-# -------------------------
-# STAGE 1: BUILD
-# -------------------------
 - stage: Build
   displayName: Build Stage
   jobs:
@@ -21,20 +15,9 @@ stages:
     displayName: Build Application
     pool:
       vmImage: $(vmImage)
-
     steps:
     - checkout: self
 
-    # Cache Maven dependencies (performance best practice)
-    #- task: Cache@2
-    #  inputs:
-    #    key: 'maven | "$(Agent.OS)" | **/pom.xml'
-    #    restoreKeys: |
-    #      maven | "$(Agent.OS)"
-    #    path: $(Pipeline.Workspace)/.m2/repository
-    #  displayName: Cache Maven Dependencies
-
-    # Build using Maven
     - task: Maven@3
       displayName: Build with Maven
       inputs:
@@ -47,33 +30,29 @@ stages:
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
 
-    # Publish artifact
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Artifact
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Artifact (Pipeline)
       inputs:
-        pathToPublish: '$(System.DefaultWorkingDirectory)/webapp/target'
-        artifactName: '$(artifactName)'
+        targetPath: '$(System.DefaultWorkingDirectory)/webapp/target'
+        artifactName: $(artifactName)
 
-# -------------------------
-# STAGE 2: DEPLOY
-# -------------------------
 - stage: Deploy
   displayName: Deploy Stage
   dependsOn: Build
   condition: succeeded()
-
   jobs:
   - job: DeployToAppService
     displayName: Deploy to Azure App Service
     pool:
       vmImage: $(vmImage)
-
     steps:
-    # Download artifact
-    - download: current
-      artifact: '$(artifactName)'
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Build Artifact
+      inputs:
+        buildType: 'current'
+        artifactName: $(artifactName)
+        targetPath: '$(Pipeline.Workspace)/drop'
 
-    # Deploy to App Service
     - task: AzureWebApp@1
       displayName: Deploy to App Service
       inputs:
