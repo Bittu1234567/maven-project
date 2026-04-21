@@ -80,4 +80,4 @@ stages:
         azureSubscription: $(azureServiceConnection)
         appType: 'webAppLinux'
         appName: $(appName)
-        package: '$(Pipeline.Workspace)/$(artifactName)/**/*.war'
+        package: '$(Pipeline.Workspace)/webapp/target/webapp.war'
