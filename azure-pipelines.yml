@@ -5,7 +5,7 @@ trigger:
 variables:
   vmImage: 'ubuntu-latest'
   buildConfiguration: 'Release'
-  artifactName: 'java-app'
+  artifactName: 'webapp.war'
   appName: 'myhelloworldapp'
   azureServiceConnection: 'devopsappserviceconnection'
 
@@ -52,7 +52,7 @@ stages:
       displayName: Publish Artifact
       inputs:
         pathToPublish: '$(System.DefaultWorkingDirectory)/webapp/target'
-        artifactName: *.war
+        artifactName: '$(artifactName)'
 
 # -------------------------
 # STAGE 2: DEPLOY
