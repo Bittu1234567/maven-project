@@ -1,22 +1,89 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
 trigger:
-- master
+- main
 
-pool:
+# Recommended variables
+variables:
   vmImage: 'ubuntu-latest'
+  buildConfiguration: 'Release'
+  artifactName: 'java-app'
+  appName: 'myhelloworldapp'
+  azureServiceConnection: 'devopsappserviceconnection'
 
-steps:
-- task: Maven@4
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+stages:
+
+# -------------------------
+# STAGE 1: BUILD
+# -------------------------
+- stage: Build
+  displayName: Build Stage
+  jobs:
+  - job: BuildJob
+    displayName: Build Application
+    pool:
+      vmImage: $(vmImage)
+
+    steps:
+    - checkout: self
+
+    # Cache Maven dependencies (performance best practice)
+    - task: Cache@2
+      inputs:
+        key: 'maven | "$(Agent.OS)" | **/pom.xml'
+        restoreKeys: |
+          maven | "$(Agent.OS)"
+        path: ~/.m2/repository
+      displayName: Cache Maven Dependencies
+
+    # Build using Maven
+    - task: Maven@3
+      displayName: Build with Maven
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'clean package'
+        options: '-Dmaven.test.skip=true'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '1.11'
+        mavenOptions: '-Xmx1024m'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+
+    # Publish artifact
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact
+      inputs:
+        pathToPublish: '$(System.DefaultWorkingDirectory)/webapp/target'
+        artifactName: *.war
+
+# -------------------------
+# STAGE 2: DEPLOY
+# -------------------------
+- stage: Deploy
+  displayName: Deploy Stage
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - deployment: DeployToAppService
+    displayName: Deploy to Azure App Service
+    environment: 'prod'   # Recommended: use environments
+
+    pool:
+      vmImage: $(vmImage)
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+
+          # Download artifact
+          - download: current
+            artifact: $(artifactName)
+
+          # Deploy to App Service
+          - task: AzureWebApp@1
+            displayName: Deploy to App Service
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              appType: 'webAppLinux'   # change if Windows
+              appName: $(appName)
+              package: '$(Pipeline.Workspace)/$(artifactName)/**/*.war'
