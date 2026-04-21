@@ -26,13 +26,13 @@ stages:
     - checkout: self
 
     # Cache Maven dependencies (performance best practice)
-    - task: Cache@2
-      inputs:
-        key: 'maven | "$(Agent.OS)" | **/pom.xml'
-        restoreKeys: |
-          maven | "$(Agent.OS)"
-        path: $(Pipeline.Workspace)/.m2/repository
-      displayName: Cache Maven Dependencies
+    #- task: Cache@2
+    #  inputs:
+    #    key: 'maven | "$(Agent.OS)" | **/pom.xml'
+    #    restoreKeys: |
+    #      maven | "$(Agent.OS)"
+    #    path: $(Pipeline.Workspace)/.m2/repository
+    #  displayName: Cache Maven Dependencies
 
     # Build using Maven
     - task: Maven@3
