@@ -1,5 +1,6 @@
 trigger:
 - main
+- master
 
 variables:
   vmImage: 'ubuntu-latest'
